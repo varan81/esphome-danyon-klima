@@ -7,6 +7,7 @@ namespace kaeltebringer {
 
   void KaeltebringerClimate::setup() {
     // This will be called by App.setup()
+    this->set_supported_custom_fan_modes({"Turbo", "Mute", "Automatic", "1", "2", "3", "4", "5"});
   }
 
   void KaeltebringerClimate::set_beep_enabled(bool enabled) { this->beep_enabled_ = enabled; }
@@ -158,6 +159,7 @@ namespace kaeltebringer {
           case climate::CLIMATE_MODE_HEAT:
             get_cmd_resp.data.mode = 0x04;
             break;
+          case climate::CLIMATE_MODE_HEAT_COOL:
           case climate::CLIMATE_MODE_AUTO:
             get_cmd_resp.data.mode = 0x05;
             break;
