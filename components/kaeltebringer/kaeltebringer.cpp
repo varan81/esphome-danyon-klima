@@ -142,28 +142,29 @@ namespace kaeltebringer {
       get_cmd_resp_t get_cmd_resp = {0};
       memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
 
-      if (climate_mode == climate::CLIMATE_MODE_OFF) {
-        get_cmd_resp.data.power = 0x00;
-      } else {
+      if (climate_mode != climate::CLIMATE_MODE_OFF) {
         get_cmd_resp.data.power = 0x01;
-        switch (climate_mode) {
-          case climate::CLIMATE_MODE_COOL:
-            get_cmd_resp.data.mode = 0x01;
-            break;
-          case climate::CLIMATE_MODE_DRY:
-            get_cmd_resp.data.mode = 0x03;
-            break;
-          case climate::CLIMATE_MODE_FAN_ONLY:
-            get_cmd_resp.data.mode = 0x02;
-            break;
-          case climate::CLIMATE_MODE_HEAT:
-            get_cmd_resp.data.mode = 0x04;
-            break;
-          case climate::CLIMATE_MODE_HEAT_COOL:
-          case climate::CLIMATE_MODE_AUTO:
-            get_cmd_resp.data.mode = 0x05;
-            break;
-        }
+      }
+
+      switch (climate_mode) {
+        case climate::CLIMATE_MODE_OFF:
+          get_cmd_resp.data.power = 0x00;
+        case climate::CLIMATE_MODE_COOL:
+          get_cmd_resp.data.mode = 0x01;
+          break;
+        case climate::CLIMATE_MODE_DRY:
+          get_cmd_resp.data.mode = 0x03;
+          break;
+        case climate::CLIMATE_MODE_FAN_ONLY:
+          get_cmd_resp.data.mode = 0x02;
+          break;
+        case climate::CLIMATE_MODE_HEAT:
+          get_cmd_resp.data.mode = 0x04;
+          break;
+        case climate::CLIMATE_MODE_HEAT_COOL:
+        case climate::CLIMATE_MODE_AUTO:
+          get_cmd_resp.data.mode = 0x05;
+          break;
       }
 
       build_set_cmd(&get_cmd_resp);
