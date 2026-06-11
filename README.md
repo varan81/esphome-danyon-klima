@@ -91,14 +91,14 @@ climate:
 | Self-clean trigger | ⚠️ experimental |
 
 ---
+
 ## Hardware photos
 
-Mainboard – UART connection (blue circle):
+Mainboard (indoor unit control board):
 ![Mainboard](imagesmainboard.jpg.png)
 
-Level shifter module:
+Level shifter module (3.3V ↔ 5V):
 ![Level Shifter](imageslevelshifter.jpg.png)
-## Credits
 
 - Original component: [KG3RK3N/esphome-kaeltebringer](https://github.com/KG3RK3N/esphome-kaeltebringer)  
 - Based on work by [lNikazzzl](https://github.com/lNikazzzl/tcl_ac_esphome)
