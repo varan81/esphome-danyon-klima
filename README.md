@@ -108,7 +108,7 @@ climate:
 
 A ready-to-use Home Assistant dashboard is included under [`examples/dashboard.yaml`](examples/dashboard.yaml).
 
-![Dashboard](imagesdashboard.png)
+![Dashboard](imagesdashboard.png.png)
 
 ### How the external temperature averaging works
 
