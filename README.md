@@ -41,13 +41,25 @@ Attempts to trigger the device's built-in self-clean cycle. Based on UART packet
 
 Tested on: **Danyon split air conditioner, OG hallway unit**
 
-Connection: ESP32 Dev Kit C → bidirectional level shifter (3.3V ↔ 5V) → indoor unit UART
+Connection: **diymore ESP32 NodeMCU (USB-C)** → bidirectional level shifter (3.3V ↔ 5V) → indoor unit UART
 
 ```
 ESP32 GPIO26  →  TX  →  level shifter  →  AC unit RX
 ESP32 GPIO27  →  RX  →  level shifter  →  AC unit TX
 Baud: 9600, Parity: EVEN
 ```
+
+**Parts used:**
+- [ESP32 NodeMCU USB-C (diymore)](https://amzn.to/4fFoX1l)
+- [Bidirectional Level Shifter 3.3V ↔ 5V](https://amzn.to/4ehPtLU)
+
+## Hardware photos
+
+Mainboard (indoor unit control board):
+![Mainboard](imagesmainboard.jpg.png)
+
+Level shifter module (3.3V ↔ 5V):
+![Level Shifter](imageslevelshifter.jpg.png)
 
 ---
 
@@ -92,13 +104,11 @@ climate:
 
 ---
 
-## Hardware photos
-
-Mainboard (indoor unit control board):
-![Mainboard](imagesmainboard.jpg.png)
-
-Level shifter module (3.3V ↔ 5V):
-![Level Shifter](imageslevelshifter.jpg.png)
+## Credits
 
 - Original component: [KG3RK3N/esphome-kaeltebringer](https://github.com/KG3RK3N/esphome-kaeltebringer)  
 - Based on work by [lNikazzzl](https://github.com/lNikazzzl/tcl_ac_esphome)
+
+---
+
+<a href="https://www.buymeacoffee.com/varan81" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 200px !important;" ></a>
