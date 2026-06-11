@@ -6,7 +6,6 @@ namespace kaeltebringer {
   static const char *const TAG = "kaeltebringer";
 
   void KaeltebringerClimate::setup() {
-    // This will be called by App.setup()
     this->set_supported_custom_fan_modes({"Turbo", "Mute", "Automatic", "1", "2", "3", "4", "5"});
   }
 
@@ -21,7 +20,6 @@ namespace kaeltebringer {
   void KaeltebringerClimate::set_custom_fan_mode(const std::string &fan_mode) {
     if (this->has_custom_fan_mode() && fan_mode == this->get_custom_fan_mode()) 
       return;
-
     this->set_custom_fan_mode_(fan_mode.c_str());
     this->is_changed = true;
   }
@@ -97,8 +95,13 @@ namespace kaeltebringer {
         break;
     }
 
-    m_set_cmd.data.vswing = get_cmd_resp->data.vswing ? 0x07 : 0x00;
-    m_set_cmd.data.hswing = get_cmd_resp->data.hswing;
+    // vswing: Bewegungsflag (mv) zusätzlich zum An/Aus-Flag setzen
+    m_set_cmd.data.vswing    = get_cmd_resp->data.vswing ? 0x07 : 0x00;
+    m_set_cmd.data.vswing_mv = get_cmd_resp->data.vswing ? 0x01 : 0x00;  // FIX
+
+    // hswing: Bewegungsflag (mv) zusätzlich zum An/Aus-Flag setzen
+    m_set_cmd.data.hswing    = get_cmd_resp->data.hswing;
+    m_set_cmd.data.hswing_mv = get_cmd_resp->data.hswing ? 0x01 : 0x00;  // FIX
 
     m_set_cmd.data.half_degree = 0;
 
@@ -111,17 +114,15 @@ namespace kaeltebringer {
     static bool wait_len = false;
     static int skipch = 0;
 
-    //ESP_LOGD("custom", "%02X", readch);
-
     if (readch >= 0) {
       if (readch == 0xBB && skipch == 0 && !wait_len) {
         pos = 0;
-        skipch = 3; // wait char with len
+        skipch = 3;
         wait_len = true;
         if (pos < len-1) buffer[pos++] = readch;
       } else if (skipch == 0 && wait_len) {
         if (pos < len-1) buffer[pos++] = readch;
-        skipch = readch + 1; // +1 control sum
+        skipch = readch + 1;
         ESP_LOGD(TAG, "len: %d", readch);
         wait_len = false;
       } else if (skipch > 0) {
@@ -129,15 +130,12 @@ namespace kaeltebringer {
         if (--skipch == 0 && !wait_len) return pos;
       }
     }
-    // No end of line has been found, so return -1.
     return -1;
   }
 
   void KaeltebringerClimate::control(const climate::ClimateCall &call) {
     if (call.get_mode().has_value()) {
-      // User requested mode change
       climate::ClimateMode climate_mode = *call.get_mode();
-      // Send mode to hardware
 
       get_cmd_resp_t get_cmd_resp = {0};
       memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
@@ -169,15 +167,11 @@ namespace kaeltebringer {
 
       build_set_cmd(&get_cmd_resp);
       ready_to_send_set_cmd_flag = true;
-
-      // Publish updated state
-    //  this->mode = mode;
-     // this->publish_state();
     }
+
     if (call.get_target_temperature().has_value()) {
-      // User requested target temperature change
       float temp = *call.get_target_temperature();
-      
+
       get_cmd_resp_t get_cmd_resp = {0};
       memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
 
@@ -186,8 +180,8 @@ namespace kaeltebringer {
       build_set_cmd(&get_cmd_resp);
       ready_to_send_set_cmd_flag = true;
     }
+
     if (call.get_swing_mode().has_value()) {
-      // User requested target temperature change
       esphome::climate::ClimateSwingMode swing_mode = *call.get_swing_mode();
 
       get_cmd_resp_t get_cmd_resp = {0};
@@ -218,7 +212,6 @@ namespace kaeltebringer {
 
     const auto custom_fan_mode = call.get_custom_fan_mode();
     if (!custom_fan_mode.empty()) {
-      // User requested target temperature change
       std::string fan_mode(custom_fan_mode.c_str());
 
       get_cmd_resp_t get_cmd_resp = {0};
@@ -226,7 +219,7 @@ namespace kaeltebringer {
 
       get_cmd_resp.data.turbo = 0x00;
       get_cmd_resp.data.mute = 0x00;
-      if (fan_mode == std::string("Turbo")) { 
+      if (fan_mode == std::string("Turbo")) {
         get_cmd_resp.data.fan = 0x03;
         get_cmd_resp.data.turbo = 0x01;
       } else if (fan_mode == std::string("Mute")) {
@@ -254,7 +247,6 @@ namespace kaeltebringer {
       ESP_LOGW(TAG, "No valid xor crc %02X (calculated %02X)", buffer[len], xor_byte);
       return false;
     }
-    
   }
 
   void KaeltebringerClimate::print_hex_str(uint8_t *buffer, int len)
@@ -271,7 +263,6 @@ namespace kaeltebringer {
   }
 
   void KaeltebringerClimate::update() {
-    // This will be called every "update_interval" milliseconds.
     uint8_t req_cmd[] = {0xBB, 0x00, 0x01, 0x04, 0x02, 0x01, 0x00, 0xBD};
 
     if (ready_to_send_set_cmd_flag) {
@@ -300,7 +291,6 @@ namespace kaeltebringer {
           else if (m_get_cmd_resp.data.mode == 0x04) this->set_mode(climate::CLIMATE_MODE_HEAT);
           else if (m_get_cmd_resp.data.mode == 0x05) this->set_mode(climate::CLIMATE_MODE_AUTO);
 
-
           if (m_get_cmd_resp.data.turbo) this->set_custom_fan_mode(std::string("Turbo"));
           else if (m_get_cmd_resp.data.mute) this->set_custom_fan_mode(std::string("Mute"));
           else if (m_get_cmd_resp.data.fan == 0x00) this->set_custom_fan_mode(std::string("Automatic"));
@@ -310,12 +300,10 @@ namespace kaeltebringer {
           else if (m_get_cmd_resp.data.fan == 0x05) this->set_custom_fan_mode(std::string("4"));
           else if (m_get_cmd_resp.data.fan == 0x03) this->set_custom_fan_mode(std::string("5"));
 
-
           if (m_get_cmd_resp.data.hswing && m_get_cmd_resp.data.vswing) this->set_swing_mode(climate::CLIMATE_SWING_BOTH);
           else if (!m_get_cmd_resp.data.hswing && !m_get_cmd_resp.data.vswing) this->set_swing_mode(climate::CLIMATE_SWING_OFF);
           else if (m_get_cmd_resp.data.vswing) this->set_swing_mode(climate::CLIMATE_SWING_VERTICAL);
           else if (m_get_cmd_resp.data.hswing) this->set_swing_mode(climate::CLIMATE_SWING_HORIZONTAL);
-
 
           ESP_LOGD(TAG, "fan %02X", m_get_cmd_resp.data.fan);
           ESP_LOGD(TAG, "mode %02X", m_get_cmd_resp.data.mode);
