@@ -104,6 +104,27 @@ climate:
 
 ---
 
+## Dashboard
+
+Ein fertiges Home Assistant Dashboard liegt unter [`examples/dashboard.yaml`](examples/dashboard.yaml).
+
+![Dashboard](imagesdashboard.png)
+
+### Wie die externe Durchschnittstemperaturregelung funktioniert
+
+Dieses Setup ist für eine **zentral im Flur hängende Klimaanlage** konzipiert, die mehrere angrenzende Zimmer versorgt. Anstatt sich auf den eingebauten Sensor der Klimaanlage zu verlassen (der nur die Lufttemperatur direkt am Gerät misst), wird der Durchschnitt aus Bluetooth-Temperatursensoren in den einzelnen Zimmern berechnet:
+
+- Ein **BTHome Bluetooth-Sensor** pro Zimmer
+- Der ESP32 liest alle Sensorwerte über Home Assistant
+- Aus allen verfügbaren Sensoren wird eine **Durchschnittstemperatur** berechnet
+- Die Solltemperatur der Klimaanlage wird automatisch korrigiert, basierend auf der Differenz zwischen dem internen Sensor und dem Raumdurchschnitt
+
+Das bedeutet: Die Klimaanlage kühlt oder heizt auf die tatsächliche Raumtemperatur – nicht die Temperatur direkt am Gerät. Fällt ein Sensor aus, wird er automatisch aus der Berechnung ausgeschlossen.
+
+Das Dashboard zeigt drei Raumsensoren (im Beispiel als Zimmer 1, Zimmer 2, Zimmer 3 bezeichnet – nach Bedarf umbenennen). Der externe Durchschnitt wird direkt in der Karte "Ext. Durchschnittsregelung" angezeigt.
+
+---
+
 ## Danksagung
 
 - Originale Komponente: [KG3RK3N/esphome-kaeltebringer](https://github.com/KG3RK3N/esphome-kaeltebringer)  
