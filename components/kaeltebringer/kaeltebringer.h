@@ -146,7 +146,7 @@ class KaeltebringerClimate : public PollingComponent, public climate::Climate, p
 
       uint8_t byte_14_bit_0_2 : 3;
       uint8_t byte_14_bit_3 : 1;
-      uint8_t byte_14_bit_4 : 1;//uint8_t hswing : 1;
+      uint8_t byte_14_bit_4 : 1;
       uint8_t half_degree : 1;
       uint8_t byte_14_bit_6_7 : 2;
 
@@ -189,11 +189,22 @@ class KaeltebringerClimate : public PollingComponent, public climate::Climate, p
   set_cmd_t m_set_cmd = {0};
   
   climate::ClimateTraits traits() override {
-    // The capabilities of the climate device
     auto traits = climate::ClimateTraits();
     traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
-    traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_COOL, climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_FAN_ONLY, climate::CLIMATE_MODE_DRY, climate::CLIMATE_MODE_AUTO});
-    traits.set_supported_swing_modes({climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_BOTH, climate::CLIMATE_SWING_VERTICAL, climate::CLIMATE_SWING_HORIZONTAL});
+    traits.set_supported_modes({
+      climate::CLIMATE_MODE_OFF,
+      climate::CLIMATE_MODE_COOL,
+      climate::CLIMATE_MODE_HEAT,
+      climate::CLIMATE_MODE_FAN_ONLY,
+      climate::CLIMATE_MODE_DRY,
+      climate::CLIMATE_MODE_AUTO
+    });
+    traits.set_supported_swing_modes({
+      climate::CLIMATE_SWING_OFF,
+      climate::CLIMATE_SWING_BOTH,
+      climate::CLIMATE_SWING_VERTICAL,
+      climate::CLIMATE_SWING_HORIZONTAL
+    });
     traits.set_visual_min_temperature(16.0);
     traits.set_visual_max_temperature(31.0);
     traits.set_visual_target_temperature_step(1.0);
@@ -204,6 +215,59 @@ class KaeltebringerClimate : public PollingComponent, public climate::Climate, p
   void update() override;
   void loop() override;
   void set_beep_enabled(bool enabled);
+
+  // Versucht Clean-Modus zu starten (experimentell)
+  void send_clean() {
+    get_cmd_resp_t get_cmd_resp = {0};
+    memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
+
+    // Clean: power=0, mode=AUTO(5), spezielle Flags
+    get_cmd_resp.data.power = 0;
+    get_cmd_resp.data.mode  = 0x05;
+    build_set_cmd(&get_cmd_resp);
+
+    // Byte 40 auf CA setzen (Bit 6 gesetzt, nur während Clean beobachtet)
+    m_set_cmd.raw[40] = 0xCA;
+
+    // Prüfsumme neu berechnen
+    m_set_cmd.raw[sizeof(m_set_cmd.raw) - 1] = 0;
+    for (int i = 0; i < (int)sizeof(m_set_cmd.raw) - 1; i++)
+      m_set_cmd.raw[sizeof(m_set_cmd.raw) - 1] ^= m_set_cmd.raw[i];
+
+    ESP_LOGI("clean", "Sende Clean-Befehl (experimentell).");
+    ready_to_send_set_cmd_flag = true;
+  }
+  void set_fan_mute() {
+    get_cmd_resp_t get_cmd_resp = {0};
+    memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
+    get_cmd_resp.data.power = 1;    // explizit an
+    get_cmd_resp.data.mode  = 0x02; // explizit FAN_ONLY
+    get_cmd_resp.data.mute  = 1;
+    get_cmd_resp.data.fan   = 0x01;
+    build_set_cmd(&get_cmd_resp);
+    ready_to_send_set_cmd_flag = true;
+  }
+  void test_vswing_fix(uint8_t fix_val, uint8_t mv_val) {
+    get_cmd_resp_t get_cmd_resp = {0};
+    memcpy(get_cmd_resp.raw, m_get_cmd_resp.raw, sizeof(get_cmd_resp.raw));
+
+    // Schwingen ausschalten, feste Position setzen
+    get_cmd_resp.data.hswing = 0;
+    get_cmd_resp.data.vswing = 0;
+    build_set_cmd(&get_cmd_resp);
+
+    // fix und mv direkt in den fertigen Set-Befehl schreiben
+    m_set_cmd.data.vswing_fix = fix_val;
+    m_set_cmd.data.vswing_mv  = mv_val;
+
+    // Prüfsumme neu berechnen
+    m_set_cmd.raw[sizeof(m_set_cmd.raw) - 1] = 0;
+    for (int i = 0; i < (int)sizeof(m_set_cmd.raw) - 1; i++)
+      m_set_cmd.raw[sizeof(m_set_cmd.raw) - 1] ^= m_set_cmd.raw[i];
+
+    ESP_LOGI("vswing_test", "Sende vswing_fix=%d vswing_mv=%d", fix_val, mv_val);
+    ready_to_send_set_cmd_flag = true;
+  }
 
 protected:
   bool beep_enabled_{true};
