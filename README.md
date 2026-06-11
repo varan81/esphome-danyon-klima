@@ -106,7 +106,7 @@ climate:
 
 ## Dashboard
 
-A ready-to-use Home Assistant dashboard is included under [`examples/dashboard.yaml`](examples/dashboard.yaml).
+A ready-to-use Home Assistant dashboard is included under [`examples/dashboard_example.yaml`](examples/dashboard_example.yaml).
 
 ![Dashboard](imagesdashboard.png.png)
 
