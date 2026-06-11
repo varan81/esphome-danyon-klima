@@ -106,7 +106,7 @@ climate:
 
 ## Dashboard
 
-Ein fertiges Home Assistant Dashboard liegt unter [`examples/dashboard.yaml`](examples/dashboard.yaml).
+Ein fertiges Home Assistant Dashboard liegt unter [`examples/dashboard_example.yaml`](examples/dashboard_example.yaml).
 
 ![Dashboard](imagesdashboard.png.png)
 
