@@ -104,6 +104,27 @@ climate:
 
 ---
 
+## Dashboard
+
+A ready-to-use Home Assistant dashboard is included under [`examples/dashboard.yaml`](examples/dashboard.yaml).
+
+![Dashboard](imagesdashboard.png)
+
+### How the external temperature averaging works
+
+This setup is designed for a **central hallway unit** that serves multiple adjacent rooms. Instead of relying on the AC's built-in sensor (which only measures air temperature at the unit itself), the system averages Bluetooth temperature sensors placed in each room:
+
+- One **BTHome Bluetooth sensor** per room
+- The ESP32 reads all sensor values via Home Assistant
+- An **average temperature** is calculated from all available sensors
+- The AC's target temperature is automatically corrected based on the difference between the internal sensor and the room average
+
+This means the AC cools or heats to the actual room temperature rather than the temperature at the unit. If one sensor is unavailable, it is excluded from the average automatically.
+
+The dashboard shows three room sensors (labeled Room 1, Room 2, Room 3 in the example – rename to match your setup). The external average is shown directly in the "Ext. Average Control" card.
+
+---
+
 ## Credits
 
 - Original component: [KG3RK3N/esphome-kaeltebringer](https://github.com/KG3RK3N/esphome-kaeltebringer)  
