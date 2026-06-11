@@ -108,7 +108,7 @@ climate:
 
 Ein fertiges Home Assistant Dashboard liegt unter [`examples/dashboard.yaml`](examples/dashboard.yaml).
 
-![Dashboard](imagesdashboard.png)
+![Dashboard](imagesdashboard.png.png)
 
 ### Wie die externe Durchschnittstemperaturregelung funktioniert
 
